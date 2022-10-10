@@ -22,10 +22,10 @@ final class AmityUserSettingsCreateMenuViewModel: AmityUserSettingsCreateMenuVie
             
             settingsItems.append(.header(content: manageItemHeader))
             
-            let editProfile = AmityUserSettingsItem.editProfile
-            let editProfileItem = AmitySettingsItem.NavigationContent(identifier: editProfile.identifier, icon: editProfile.icon, title: editProfile.title, description: nil)
-            
-            settingsItems.append(.navigationContent(content: editProfileItem))
+//            let editProfile = AmityUserSettingsItem.editProfile
+//            let editProfileItem = AmitySettingsItem.NavigationContent(identifier: editProfile.identifier, icon: editProfile.icon, title: editProfile.title, description: nil)
+//            
+//            settingsItems.append(.navigationContent(content: editProfileItem))
             
             settingsItems.append(.separator)
             
