@@ -34,6 +34,7 @@ open class AmityFeedEventHandler {
     ///
     /// A default behavior is presenting group list
     open func sharePostToGroupDidTap(from source: AmityViewController, postId: String) {
+        
     }
     
     /// Event to share a post
@@ -41,5 +42,6 @@ open class AmityFeedEventHandler {
     ///
     /// A default behavior is share the post to my timeline
     open func sharePostToMyTimelineDidTap(from source: AmityViewController, postId: String) {
+        
     }
 }

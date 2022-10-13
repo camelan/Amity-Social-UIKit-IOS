@@ -46,6 +46,11 @@ extension UIViewController {
     }
     
     func presentVideoPlayer(at url: URL) {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
+        } catch let error {
+            debugPrint("something went wrong with presentVideoPlayer")
+        }
         let player = AVPlayer(url: url)
         let playerViewController = AVPlayerViewController()
         playerViewController.player = player

@@ -291,6 +291,10 @@ extension AmityPostGalleryViewController: AmityPostGalleryScreenViewModelDelegat
     
     func screenViewModelDidUpdateDataSource(_ viewModel: AmityPostGalleryScreenViewModel) {
         collectionView.reloadData()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self else { return }
+            self.screenViewModel.isFetchingMore = false
+        }
     }
     
 }
@@ -344,8 +348,9 @@ extension AmityPostGalleryViewController: AmityPhotoViewerControllerDataSource {
         
     }
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if scrollView.startPagination() {
+        if scrollView.startPagination() && screenViewModel.isFetchingMore == false {
             debugPrint("community paging")
+            screenViewModel.isFetchingMore = true
             screenViewModel.action.loadMore()
         }
     }
@@ -358,10 +363,14 @@ extension AmityPostGalleryViewController: AmityPhotoViewerControllerDelegate {
 extension UIScrollView {
 
     func startPagination() -> Bool {
-        guard self.isDragging else { return false }
+//        guard self.isDragging else { return false }
         let offsetY = self.contentOffset.y
         guard offsetY > 0 else { return false }
-        let contentHeight = self.contentSize.height - CGFloat(32)
+        let contentHeight = self.contentSize.height - CGFloat(prefetchRange)
         return offsetY > contentHeight - self.frame.height ? true : false
+    }
+
+    private var prefetchRange: Int {
+        return 32 //helps us to start loading the next page before reaching to the end of the list
     }
 }

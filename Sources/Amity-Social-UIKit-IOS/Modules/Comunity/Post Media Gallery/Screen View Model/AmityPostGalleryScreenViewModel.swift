@@ -31,7 +31,7 @@ class AmityPostGalleryScreenViewModel {
     
     private var posts: AmityCollection<AmityPost>?
     private var token: AmityNotificationToken?
-    
+    var isFetchingMore: Bool = false
     func setup(postRepository: AmityPostRepository) {
         self.postRepository = postRepository
     }

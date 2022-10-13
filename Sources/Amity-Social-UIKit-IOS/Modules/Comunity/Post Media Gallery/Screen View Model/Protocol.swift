@@ -26,6 +26,7 @@ protocol AmityPostGalleryScreenViewModelAction {
 }
 
 protocol AmityPostGalleryScreenViewModelType {
+    var isFetchingMore: Bool { get set }
     var delegate: AmityPostGalleryScreenViewModelDelegate? { get set }
     var action: AmityPostGalleryScreenViewModelAction { get }
     var dataSource: AmityPostGalleryScreenViewModelDataSource { get }
