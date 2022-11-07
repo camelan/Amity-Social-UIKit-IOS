@@ -45,25 +45,29 @@ final class AmityFeedRepositoryManager: AmityFeedRepositoryManagerProtocol {
     }
     
     func retrieveFeed(withFeedType type: AmityPostFeedType, completion: ((Result<[AmityPostModel], AmityError>) -> Void)?) {
-        switch type {
-        case .globalFeed:
-            collection = repository.getGlobalFeed()
-        case .customPostRankingGlobalFeed:
-            collection = repository.getCustomPostRankingGlobalfeed()
-        case .myFeed:
-            collection = repository.getMyFeedSorted(by: .lastCreated, includeDeleted: false)
-        case .userFeed(let userId):
-            // If current userId is passing through .userFeed, handle this case as .myFeed type.
-            if userId == AmityUIKitManagerInternal.shared.currentUserId {
-                collection = repository.getMyFeedSorted(by: .lastCreated, includeDeleted: false)
-            } else {
-                collection = repository.getUserFeed(userId, sortBy: .lastCreated, includeDeleted: false)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            switch type {
+            case .globalFeed:
+                self.collection = self.repository.getGlobalFeed()
+            case .customPostRankingGlobalFeed:
+                self.collection = self.repository.getCustomPostRankingGlobalfeed()
+            case .myFeed:
+                self.collection = self.repository.getMyFeedSorted(by: .lastCreated, includeDeleted: false)
+            case .userFeed(let userId):
+                // If current userId is passing through .userFeed, handle this case as .myFeed type.
+                if userId == AmityUIKitManagerInternal.shared.currentUserId {
+                    self.collection = self.repository.getMyFeedSorted(by: .lastCreated, includeDeleted: false)
+                } else {
+                    self.collection = self.repository.getUserFeed(userId, sortBy: .lastCreated, includeDeleted: false)
+                }
+            case .communityFeed(let communityId):
+                self.collection = self.repository.getCommunityFeed(withCommunityId: communityId, sortBy: .lastCreated, includeDeleted: false, feedType: .published)
+            case .pendingPostsFeed(let communityId):
+                self.collection = self.repository.getCommunityFeed(withCommunityId: communityId, sortBy: .lastCreated, includeDeleted: false, feedType: .reviewing)
             }
-        case .communityFeed(let communityId):
-            collection = repository.getCommunityFeed(withCommunityId: communityId, sortBy: .lastCreated, includeDeleted: false, feedType: .published)
-        case .pendingPostsFeed(let communityId):
-            collection = repository.getCommunityFeed(withCommunityId: communityId, sortBy: .lastCreated, includeDeleted: false, feedType: .reviewing)
         }
+        
         
         token?.invalidate()
         token = collection?.observe { [weak self] (collection, change, error) in
