@@ -66,16 +66,16 @@ final class AmityFeedRepositoryManager: AmityFeedRepositoryManagerProtocol {
             case .pendingPostsFeed(let communityId):
                 self.collection = self.repository.getCommunityFeed(withCommunityId: communityId, sortBy: .lastCreated, includeDeleted: false, feedType: .reviewing)
             }
-        }
-        
-        
-        token?.invalidate()
-        token = collection?.observe { [weak self] (collection, change, error) in
-            guard let strongSelf = self else { return }
-            if let error = AmityError(error: error) {
-                completion?(.failure(error))
-            } else {
-                completion?(.success(strongSelf.prepareDataSource(feedType: type)))
+            
+            
+            self.token?.invalidate()
+            self.token = self.collection?.observe { [weak self] (collection, change, error) in
+                guard let strongSelf = self else { return }
+                if let error = AmityError(error: error) {
+                    completion?(.failure(error))
+                } else {
+                    completion?(.success(strongSelf.prepareDataSource(feedType: type)))
+                }
             }
         }
     }
