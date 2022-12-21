@@ -41,17 +41,20 @@ final class AmityCommentChildrenController {
                 break
             }
         } else {
-            commentChildrenResults[parentId] = []
-            commentChildrenCollections[parentId] = commentRepository.getCommentsWithReferenceId(postId, referenceType: .post, filterByParentId: true, parentId: parentId, orderBy: .descending, includeDeleted: true)
-            commentChildrenTokens[parentId] = commentChildrenCollections[parentId]?.observe { [weak self] collection, _, _ in
-                guard let strongSelf = self else { return }
-                var commentModels: [AmityCommentModel] = []
-                for i in 0..<collection.count() {
-                    guard let childComment = collection.object(at: i) else { continue }
-                    commentModels.append(AmityCommentModel(comment: childComment))
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.commentChildrenResults[parentId] = []
+                self.commentChildrenCollections[parentId] = self.commentRepository.getCommentsWithReferenceId(self.postId, referenceType: .post, filterByParentId: true, parentId: parentId, orderBy: .descending, includeDeleted: true)
+                self.commentChildrenTokens[parentId] = self.commentChildrenCollections[parentId]?.observe { [weak self] collection, _, _ in
+                    guard let strongSelf = self else { return }
+                    var commentModels: [AmityCommentModel] = []
+                    for i in 0..<collection.count() {
+                        guard let childComment = collection.object(at: i) else { continue }
+                        commentModels.append(AmityCommentModel(comment: childComment))
+                    }
+                    strongSelf.commentChildrenResults[parentId] = commentModels
+                    completion?()
                 }
-                strongSelf.commentChildrenResults[parentId] = commentModels
-                completion?()
             }
         }
     }

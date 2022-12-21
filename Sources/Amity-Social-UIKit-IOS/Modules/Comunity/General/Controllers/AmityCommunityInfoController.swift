@@ -26,18 +26,22 @@ final class AmityCommunityInfoController: AmityCommunityInfoControllerProtocol {
     }
     
     func getCommunity(_ completion: @escaping (Result<AmityCommunityModel, AmityError>) -> Void) {
-        community = repository.getCommunity(withId: communityId)
-        token = community?.observe { community, error in
-            guard let object = community.object else {
-                if let error = AmityError(error: error) {
-                    completion(.failure(error))
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.community = self.repository.getCommunity(withId: self.communityId)
+            self.token = self.community?.observe { community, error in
+                guard let object = community.object else {
+                    if let error = AmityError(error: error) {
+                        AmityUIKitManager.logger?(.error(error))
+                        completion(.failure(error))
+                    }
+                    return
                 }
-                return
+                
+                let model = AmityCommunityModel(object: object)
+                completion(.success(model))
+              
             }
-            
-            let model = AmityCommunityModel(object: object)
-            completion(.success(model))
-          
         }
     }
 }

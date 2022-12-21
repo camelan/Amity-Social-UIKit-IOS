@@ -23,7 +23,9 @@ extension PHAsset {
             if let result = result, let imageData = result.pngData(), let pngImage = UIImage(data: imageData) {
                 completion?(.success(pngImage))
             } else {
-                completion?(.failure(AmityError.unknown))
+                let error = AmityError.unknown
+                AmityUIKitManager.logger?(.warning(error))
+                completion?(.failure(error))
             }
         }
     }

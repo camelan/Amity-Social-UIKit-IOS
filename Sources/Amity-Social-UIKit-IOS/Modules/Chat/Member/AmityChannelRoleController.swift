@@ -28,10 +28,15 @@ final class AmityChannelRoleController: AmityChannelRoleControllerProtocol {
             if success {
                 completion?(nil)
             } else {
+                
                 if let error = AmityError(error: error) {
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
                     completion?(error)
                 } else {
-                    completion?(AmityError.unknown)
+                    let error = AmityError.unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    completion?(error)
                 }
             }
         })
@@ -43,7 +48,9 @@ final class AmityChannelRoleController: AmityChannelRoleControllerProtocol {
             if success {
                 completion?(nil)
             } else {
-                completion?(AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                completion?(error)
             }
         })
     }

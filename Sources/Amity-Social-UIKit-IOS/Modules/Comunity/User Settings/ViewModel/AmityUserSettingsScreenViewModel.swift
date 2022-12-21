@@ -39,70 +39,89 @@ final class AmityUserSettingsScreenViewModel: AmityUserSettingsScreenViewModelTy
 // MARK: - Action
 extension AmityUserSettingsScreenViewModel {
     func unfollowUser() {
-        followManager.unfollowUser(withUserId: userId) { [weak self] success, response, error in
-            guard let strongSelf = self else { return }
-            
-            if !success {
-                strongSelf.delegate?.screenViewModelDidUnfollowUserFail()
-                return
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.followManager.unfollowUser(withUserId: self.userId) { [weak self] success, response, error in
+                guard let strongSelf = self else { return }
+                
+                if !success {
+                    strongSelf.delegate?.screenViewModelDidUnfollowUserFail()
+                    return
+                }
+                
+                strongSelf.followStatus = AmityFollowStatus.none
+                strongSelf.createMenuViewModel()
+                strongSelf.delegate?.screenViewModelDidUnfollowUser()
             }
-            
-            strongSelf.followStatus = AmityFollowStatus.none
-            strongSelf.createMenuViewModel()
-            strongSelf.delegate?.screenViewModelDidUnfollowUser()
         }
     }
     
     func reportUser() {
         guard let user = user else { return }
-        flagger = AmityUserFlagger(client: AmityUIKitManagerInternal.shared.client, userId: user.userId)
-        flagger?.flag { [weak self] (success, error) in
-            guard let strongSelf = self else { return }
-            
-            if let error = error {
-                strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
-            } else {
-                strongSelf.isFlaggedByMe = !(strongSelf.isFlaggedByMe ?? false)
-                strongSelf.createMenuViewModel()
-                strongSelf.delegate?.screenViewModelDidFlagUserSuccess()
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.flagger = AmityUserFlagger(client: AmityUIKitManagerInternal.shared.client, userId: user.userId)
+            self.flagger?.flag { [weak self] (success, error) in
+                guard let strongSelf = self else { return }
+                
+                if let error = error {
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
+                } else {
+                    strongSelf.isFlaggedByMe = !(strongSelf.isFlaggedByMe ?? false)
+                    strongSelf.createMenuViewModel()
+                    strongSelf.delegate?.screenViewModelDidFlagUserSuccess()
+                }
             }
         }
+        
     }
 
     func unreportUser() {
         guard let user = user else { return }
-        flagger = AmityUserFlagger(client: AmityUIKitManagerInternal.shared.client, userId: user.userId)
-        flagger?.unflag { [weak self] (success, error) in
-            guard let strongSelf = self else { return }
-            
-            if let error = error {
-                strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
-            } else {
-                self?.isFlaggedByMe = !(self?.isFlaggedByMe ?? false)
-                self?.createMenuViewModel()
-                strongSelf.delegate?.screenViewModelDidUnflagUserSuccess()
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.flagger = AmityUserFlagger(client: AmityUIKitManagerInternal.shared.client, userId: user.userId)
+            self.flagger?.unflag { [weak self] (success, error) in
+                guard let strongSelf = self else { return }
+                
+                if let error = error {
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
+                } else {
+                    self?.isFlaggedByMe = !(self?.isFlaggedByMe ?? false)
+                    self?.createMenuViewModel()
+                    strongSelf.delegate?.screenViewModelDidUnflagUserSuccess()
+                }
             }
         }
     }
     
     func fetchUserSettings() {
-        userToken = userRepository.getUser(userId).observe { [weak self] user, error in
-            guard let strongSelf = self else { return }
-            
-            if let error = error {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.userToken = self.userRepository.getUser(self.userId).observe { [weak self] user, error in
+                guard let strongSelf = self else { return }
+                
+                if let error = error {
+                    strongSelf.userToken?.invalidate()
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
+                    return
+                }
+                
+                if let user = user.object {
+                    let amityUser = AmityUserModel(user: user)
+                    strongSelf.user = user
+                    strongSelf.delegate?.screenViewModel(strongSelf, didGetUserSuccess: amityUser)
+                    strongSelf.retrieveSettingsMenu()
+                }
+                
                 strongSelf.userToken?.invalidate()
-                strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
-                return
             }
-            
-            if let user = user.object {
-                let amityUser = AmityUserModel(user: user)
-                strongSelf.user = user
-                strongSelf.delegate?.screenViewModel(strongSelf, didGetUserSuccess: amityUser)
-                strongSelf.retrieveSettingsMenu()
-            }
-            
-            strongSelf.userToken?.invalidate()
         }
     }
 }

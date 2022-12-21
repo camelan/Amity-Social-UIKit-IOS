@@ -25,17 +25,20 @@ final class AmityCommunityListRepositoryManager: AmityCommunityListRepositoryMan
     }
     
     func search(withText text: String?, filter: AmityCommunityQueryFilter, _ completion: (([AmityCommunityModel]) -> Void)?) {
-        collection = repository.getCommunities(displayName: text, filter: filter, sortBy: .displayName, categoryId: nil, includeDeleted: false)
-        token?.invalidate()
-        token = collection?.observe { (collection, change, error) in
-            if collection.dataStatus == .fresh {
-                var communityList: [AmityCommunityModel] = []
-                for index in 0..<collection.count() {
-                    guard let object = collection.object(at: index) else { continue }
-                    let model = AmityCommunityModel(object: object)
-                    communityList.append(model)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.collection = self.repository.getCommunities(displayName: text, filter: filter, sortBy: .displayName, categoryId: nil, includeDeleted: false)
+            self.token?.invalidate()
+            self.token = self.collection?.observe { (collection, change, error) in
+                if collection.dataStatus == .fresh {
+                    var communityList: [AmityCommunityModel] = []
+                    for index in 0..<collection.count() {
+                        guard let object = collection.object(at: index) else { continue }
+                        let model = AmityCommunityModel(object: object)
+                        communityList.append(model)
+                    }
+                    completion?(communityList)
                 }
-                completion?(communityList)
             }
         }
     }

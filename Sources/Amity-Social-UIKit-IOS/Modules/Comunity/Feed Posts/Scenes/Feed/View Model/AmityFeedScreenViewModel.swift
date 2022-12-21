@@ -109,6 +109,7 @@ extension AmityFeedScreenViewModel {
                 strongSelf.debouncer.run {
                     strongSelf.prepareComponents(posts: [])
                 }
+                AmityUIKitManager.logger?(.error(error))
                 if let amityError = AmityError(error: error), amityError == .noUserAccessPermission {
                     switch strongSelf.feedType {
                     case .userFeed:
@@ -169,7 +170,9 @@ extension AmityFeedScreenViewModel {
                     break
                 }
             } else {
-                strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: error)
             }
         }
     }
@@ -187,7 +190,9 @@ extension AmityFeedScreenViewModel {
                     break
                 }
             } else {
-                strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: error)
             }
         }
     }
@@ -202,7 +207,9 @@ extension AmityFeedScreenViewModel {
             if success {
                 NotificationCenter.default.post(name: NSNotification.Name.Post.didDelete, object: nil)
             } else {
-                strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: error)
             }
         }
     }
@@ -234,7 +241,9 @@ extension AmityFeedScreenViewModel {
             if success {
                 strongSelf.delegate?.screenViewModelDidDeleteCommentSuccess(strongSelf)
             } else {
-                strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: error)
             }
         }
     }
@@ -245,7 +254,9 @@ extension AmityFeedScreenViewModel {
             if success {
                 strongSelf.delegate?.screenViewModelDidEditCommentSuccess(strongSelf)
             } else {
-                strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: error)
             }
         }
     }
@@ -274,7 +285,9 @@ private extension AmityFeedScreenViewModel {
         if success {
             delegate?.screenViewModelDidSuccess(self, message: AmityLocalizedStringSet.HUD.reportSent)
         } else {
-            delegate?.screenViewModelDidFail(self, failure: AmityError(error: error) ?? .unknown)
+            let error = AmityError(error: error) ?? .unknown
+            AmityUIKitManager.logger?(.error(error))
+            delegate?.screenViewModelDidFail(self, failure: error)
         }
     }
     
@@ -282,7 +295,9 @@ private extension AmityFeedScreenViewModel {
         if success {
             delegate?.screenViewModelDidSuccess(self, message: AmityLocalizedStringSet.HUD.unreportSent)
         } else {
-            delegate?.screenViewModelDidFail(self, failure: AmityError(error: error) ?? .unknown)
+            let error = AmityError(error: error) ?? .unknown
+            AmityUIKitManager.logger?(.error(error))
+            delegate?.screenViewModelDidFail(self, failure: error)
         }
     }
 }
@@ -307,28 +322,39 @@ extension AmityFeedScreenViewModel {
     
     func vote(withPollId pollId: String?, answerIds: [String]) {
         guard let pollId = pollId else { return }
-        pollRepository.votePoll(withId: pollId, answerIds: answerIds) { [weak self] success, error in
-            guard let strongSelf = self else { return }
-            
-            Log.add("[Poll] Vote Poll: \(success) Error: \(error)")
-            if success {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.pollRepository.votePoll(withId: pollId, answerIds: answerIds) { [weak self] success, error in
+                guard let strongSelf = self else { return }
                 
-            } else {
-                strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: AmityError(error: error) ?? .unknown)
+                Log.add("[Poll] Vote Poll: \(success) Error: \(error)")
+                if success {
+                    
+                } else {
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: error)
+                }
             }
         }
     }
     
     func close(withPollId pollId: String?) {
         guard let pollId = pollId else { return }
-        pollRepository.closePoll(withId: pollId) { [weak self] success, error in
-            guard let strongSelf = self else { return }
-            if success {
-                
-            } else {
-                strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: AmityError(error: error) ?? .unknown)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.pollRepository.closePoll(withId: pollId) { [weak self] success, error in
+                guard let strongSelf = self else { return }
+                if success {
+                    
+                } else {
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: error)
+                }
             }
         }
+        
     }
     
 }

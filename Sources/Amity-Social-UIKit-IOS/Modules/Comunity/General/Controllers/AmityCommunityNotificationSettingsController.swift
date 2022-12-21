@@ -24,7 +24,9 @@ class AmityUserNotificationSettingsController: AmityUserNotificationSettingsCont
             if let notification = notification {
                 completion?(.success(notification))
             } else {
-                completion?(.failure(error ?? AmityError.unknown))
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                completion?(.failure(error))
             }
         }
     }
@@ -62,7 +64,9 @@ final class AmityCommunityNotificationSettingsController: AmityCommunityNotifica
             if let settings = settings {
                 completion?(.success(settings))
             } else {
-                completion?(.failure(error ?? AmityError.unknown))
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                completion?(.failure(error))
             }
         }
     }

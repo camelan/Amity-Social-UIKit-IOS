@@ -93,7 +93,9 @@ extension AmityFollowRequestsScreenViewModel {
 private extension AmityFollowRequestsScreenViewModel {
     func prepareDataSource(collection: AmityCollection<AmityFollowRelationship>, error: Error?) {
         if let error = error {
-            delegate?.screenViewModel(self, failure: AmityError(error: error) ?? .unknown)
+            let error = AmityError(error: error) ?? .unknown
+            AmityUIKitManager.logger?(.error(error))
+            delegate?.screenViewModel(self, failure: error)
             followToken?.invalidate()
             return
         }

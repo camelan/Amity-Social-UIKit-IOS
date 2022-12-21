@@ -28,17 +28,20 @@ final class AmityMessageMediaService {
                 
                 progress?()
                 guard let messageInfo = message.getFileInfo() else { return }
-                fileRepository.downloadFileAsData(fromURL: messageInfo.fileURL, completion: { (data, error) in
-                    guard error == nil, let data = data else {
-                        if let error = error {
-                            completion(.failure(error))
+                DispatchQueue.main.async {
+                    fileRepository.downloadFileAsData(fromURL: messageInfo.fileURL, completion: { (data, error) in
+                        guard error == nil, let data = data else {
+                            if let error = error {
+                                completion(.failure(error))
+                            }
+                            return
                         }
-                        return
-                    }
-                    AmityFileCache.shared.cacheData(for: .audioDirectory, data: data, fileName: fileName, completion: { url in
-                        completion(.success(url))
+                        AmityFileCache.shared.cacheData(for: .audioDirectory, data: data, fileName: fileName, completion: { url in
+                            completion(.success(url))
+                        })
                     })
-                })
+                }
+                
             }
         case .image:
             break
@@ -91,29 +94,31 @@ final class AmityMessageMediaService {
             
             // Notify about progress, telling that the file is downloading.
             progress?()
-            
-            // Else downlaod it from server
-            fileRepository.downloadImage(fromURL: fileURL, size: size, completion: { [weak self] (url, error) in
-                if let err = error {
-                    Log.add("Error while downloading image \(String(describing: url)) \(err)")
-                    return
-                }
-                
-                if let localFileURL = url {
-                    // Save in cache
-                    AmityFileCache.shared.cacheDownloadedFile(url: localFileURL, id: messageId)
-                    
-                    guard let newFileLocation = AmityFileCache.shared.getCachedDownloadedFile(id: messageId) else {
-                        completion(.failure(AmityError.unknown))
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                // Else downlaod it from server
+                fileRepository.downloadImage(fromURL: fileURL, size: size, completion: { [weak self] (url, error) in
+                    if let err = error {
+                        Log.add("Error while downloading image \(String(describing: url)) \(err)")
                         return
                     }
-                                        
-                    // Load image from URL and return it
-                    self?.loadImageFromURL(fileURL: newFileLocation, completion: { image in
-                        completion(.success(image))
-                    })
-                }
-            })
+                    
+                    if let localFileURL = url {
+                        // Save in cache
+                        AmityFileCache.shared.cacheDownloadedFile(url: localFileURL, id: messageId)
+                        
+                        guard let newFileLocation = AmityFileCache.shared.getCachedDownloadedFile(id: messageId) else {
+                            completion(.failure(AmityError.unknown))
+                            return
+                        }
+                                            
+                        // Load image from URL and return it
+                        self?.loadImageFromURL(fileURL: newFileLocation, completion: { image in
+                            completion(.success(image))
+                        })
+                    }
+                })
+            }
             
         default:
             break

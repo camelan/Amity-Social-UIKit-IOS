@@ -73,14 +73,17 @@ final public class AmityMentionManager {
         case .post(let communityId), .comment(let communityId):
             self.communityId = communityId
             if let communityId = communityId {
-                communityObject = privateCommunityRepository.getCommunity(withId: communityId)
-                token = communityObject?.observe { [weak self] community, error in
-                    if community.dataStatus == .fresh {
-                        self?.token?.invalidate()
+                DispatchQueue.main.async { [weak self] in
+                    guard let self = self else { return }
+                    self.communityObject = self.privateCommunityRepository.getCommunity(withId: communityId)
+                    self.token = self.communityObject?.observe { [weak self] community, error in
+                        if community.dataStatus == .fresh {
+                            self?.token?.invalidate()
+                        }
+                        guard let object = community.object else { return }
+                        
+                        self?.community = AmityCommunityModel(object: object)
                     }
-                    guard let object = community.object else { return }
-                    
-                    self?.community = AmityCommunityModel(object: object)
                 }
             }
         default:
@@ -327,18 +330,21 @@ public extension AmityMentionManager {
 // MARK: - Private methods
 private extension AmityMentionManager {
     func search(withText text: String) {
-        if communityId == nil || (community?.isPublic ?? false) {
-            usersCollection = userRepository.searchUser(text, sortBy: .displayName)
-            collectionToken = usersCollection?.observe { [weak self] (collection, _, error) in
-                self?.handleSearchResponse(with: collection)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if self.communityId == nil || (self.community?.isPublic ?? false) {
+                self.usersCollection = self.userRepository.searchUser(text, sortBy: .displayName)
+                self.collectionToken = self.usersCollection?.observe { [weak self] (collection, _, error) in
+                    self?.handleSearchResponse(with: collection)
+                }
+                return
             }
-            return
-        }
-        
-        if let communityId = communityId {
-            privateCommunityMembersCollection = privateCommunityRepository.searchMembers(communityId: communityId, displayName: text, membership: [.member], roles: [], sortBy: .lastCreated)
-            collectionToken = privateCommunityMembersCollection?.observe { [ weak self] (collection, change, error) in
-                self?.handleSearchResponse(with: collection)
+            
+            if let communityId = self.communityId {
+                self.privateCommunityMembersCollection = self.privateCommunityRepository.searchMembers(communityId: communityId, displayName: text, membership: [.member], roles: [], sortBy: .lastCreated)
+                self.collectionToken = self.privateCommunityMembersCollection?.observe { [ weak self] (collection, change, error) in
+                    self?.handleSearchResponse(with: collection)
+                }
             }
         }
     }

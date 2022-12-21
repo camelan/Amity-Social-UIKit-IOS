@@ -76,7 +76,9 @@ final class AmityCommunityAddMemberController: AmityCommunityAddMemberController
                 if success {
                     self?.addMemberError = nil
                 } else {
-                    self?.removeMemberError = AmityError(error: error) ?? .unknown
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    self?.removeMemberError = error
                 }
                 self?.queue.leave()
             })
@@ -90,7 +92,9 @@ final class AmityCommunityAddMemberController: AmityCommunityAddMemberController
                 if success {
                     self?.removeMemberError = nil
                 } else {
-                    self?.removeMemberError = AmityError(error: error) ?? .unknown
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    self?.removeMemberError = error
                 }
                 self?.queue.leave()
             })

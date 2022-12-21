@@ -39,28 +39,33 @@ final class AmityUserProfileHeaderScreenViewModel: AmityUserProfileHeaderScreenV
 // MARK: Action
 extension AmityUserProfileHeaderScreenViewModel {
     func fetchUserData() {
-        userToken?.invalidate()
-        userToken = userRepository.getUser(userId).observe { [weak self] object, error in
-            guard let strongSelf = self else { return }
-            // Due to `observeOnce` doesn't guarantee if the data is fresh or local.
-            // So, this is a workaround to execute code specifically for fresh data status.
-            switch object.dataStatus {
-            case .fresh:
-                if let user = object.object {
-                    strongSelf.prepareUserData(user: user)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.userToken?.invalidate()
+            self.userToken = self.userRepository.getUser(self.userId).observe { [weak self] object, error in
+                guard let strongSelf = self else { return }
+                // Due to `observeOnce` doesn't guarantee if the data is fresh or local.
+                // So, this is a workaround to execute code specifically for fresh data status.
+                switch object.dataStatus {
+                case .fresh:
+                    if let user = object.object {
+                        strongSelf.prepareUserData(user: user)
+                    }
+                    strongSelf.userToken?.invalidate()
+                case .error:
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
+                    strongSelf.userToken?.invalidate()
+                case .local:
+                    if let user = object.object {
+                        strongSelf.prepareUserData(user: user)
+                    }
+                case .notExist:
+                    strongSelf.userToken?.invalidate()
+                @unknown default:
+                    break
                 }
-                strongSelf.userToken?.invalidate()
-            case .error:
-                strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
-                strongSelf.userToken?.invalidate()
-            case .local:
-                if let user = object.object {
-                    strongSelf.prepareUserData(user: user)
-                }
-            case .notExist:
-                strongSelf.userToken?.invalidate()
-            @unknown default:
-                break
             }
         }
     }
@@ -73,6 +78,8 @@ extension AmityUserProfileHeaderScreenViewModel {
                 if success, let result = object {
                     strongSelf.handleFollowInfo(followInfo: AmityFollowInfo(followInfo: result))
                 } else {
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
                     strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
                 }
             })
@@ -86,7 +93,9 @@ extension AmityUserProfileHeaderScreenViewModel {
             if success, let result = object {
                 strongSelf.handleFollowInfo(followInfo: AmityFollowInfo(followInfo: result))
             } else {
-                strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
             }
         }
     }
@@ -95,25 +104,27 @@ extension AmityUserProfileHeaderScreenViewModel {
         let builder = AmityConversationChannelBuilder()
         builder.setUserId(userId)
         builder.setDisplayName(user?.displayName ?? "")
-        
-        let channel: AmityObject<AmityChannel> = channelRepository.createChannel(with: builder)
-        channelToken?.invalidate()
-        channelToken = channel.observeOnce { [weak self] channelObject, _ in
-            guard let strongSelf = self else { return }
-            switch channelObject.dataStatus {
-            case .fresh:
-                if let channel = channelObject.object {
-                    strongSelf.delegate?.screenViewModel(strongSelf, didCreateChannel: channel)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let channel: AmityObject<AmityChannel> = self.channelRepository.createChannel(with: builder)
+            self.channelToken?.invalidate()
+            self.channelToken = channel.observeOnce { [weak self] channelObject, _ in
+                guard let strongSelf = self else { return }
+                switch channelObject.dataStatus {
+                case .fresh:
+                    if let channel = channelObject.object {
+                        strongSelf.delegate?.screenViewModel(strongSelf, didCreateChannel: channel)
+                    }
+                    strongSelf.channelToken?.invalidate()
+                case .local:
+                    if let channel = channelObject.object {
+                        strongSelf.delegate?.screenViewModel(strongSelf, didCreateChannel: channel)
+                    }
+                case .error, .notExist:
+                    strongSelf.channelToken?.invalidate()
+                @unknown default:
+                    break
                 }
-                strongSelf.channelToken?.invalidate()
-            case .local:
-                if let channel = channelObject.object {
-                    strongSelf.delegate?.screenViewModel(strongSelf, didCreateChannel: channel)
-                }
-            case .error, .notExist:
-                strongSelf.channelToken?.invalidate()
-            @unknown default:
-                break
             }
         }
     }

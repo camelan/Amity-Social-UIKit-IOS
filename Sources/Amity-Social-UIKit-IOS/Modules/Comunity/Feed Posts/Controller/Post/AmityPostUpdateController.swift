@@ -19,7 +19,10 @@ final class AmityPostUpdateController: AmityPostUpdateControllerProtocol {
     func update(withPostId postId: String, text: String, completion: AmityPostRequestCompletion?) {
         let textBuilder = AmityTextPostBuilder()
         textBuilder.setText(text)
-        repository.updatePost(withPostId: postId, builder: textBuilder, completion: completion)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.repository.updatePost(withPostId: postId, builder: textBuilder, completion: completion)
+        }
     }
     
 }

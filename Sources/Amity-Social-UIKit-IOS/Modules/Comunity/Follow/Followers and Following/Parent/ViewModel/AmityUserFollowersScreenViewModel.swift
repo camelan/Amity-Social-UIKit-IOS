@@ -27,23 +27,29 @@ final class AmityUserFollowersScreenViewModel: AmityUserFollowersScreenViewModel
 // MARK: Action
 extension AmityUserFollowersScreenViewModel {
     func getUser() {
-        userToken?.invalidate()
-        userToken = userRepository.getUser(userId).observe { [weak self] object, error in
-            guard let strongSelf = self else { return }
-            switch object.dataStatus {
-            case .fresh:
-                if let user = object.object {
-                    let userModel = AmityUserModel(user: user)
-                    strongSelf.user = userModel
-                    strongSelf.delegate?.screenViewModel(strongSelf, didGetUser: userModel)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.userToken?.invalidate()
+            self.userToken = self.userRepository.getUser(self.userId).observe { [weak self] object, error in
+                guard let strongSelf = self else { return }
+                switch object.dataStatus {
+                case .fresh:
+                    if let user = object.object {
+                        let userModel = AmityUserModel(user: user)
+                        strongSelf.user = userModel
+                        strongSelf.delegate?.screenViewModel(strongSelf, didGetUser: userModel)
+                    }
+                case .error:
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
+                case .local, .notExist:
+                    break
+                @unknown default:
+                    break
                 }
-            case .error:
-                strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
-            case .local, .notExist:
-                break
-            @unknown default:
-                break
             }
         }
+        
     }
 }

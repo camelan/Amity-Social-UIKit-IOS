@@ -23,10 +23,17 @@ final class AmityReactionController: AmityReactionControllerProtocol {
     private let repository = AmityReactionRepository(client: AmityUIKitManagerInternal.shared.client)
 
     func addReaction(withReaction reaction: AmityReactionType, referanceId: String, referenceType: AmityReactionReferenceType, completion: AmityRequestCompletion?) {
-        repository.addReaction(reaction.rawValue, referenceId: referanceId, referenceType: referenceType, completion: completion)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.repository.addReaction(reaction.rawValue, referenceId: referanceId, referenceType: referenceType, completion: completion)
+        }
+        
     }
     
     func removeReaction(withReaction reaction: AmityReactionType, referanceId: String, referenceType: AmityReactionReferenceType, completion: AmityRequestCompletion?) {
-        repository.removeReaction(reaction.rawValue, referenceId: referanceId, referenceType: referenceType, completion: completion)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.repository.removeReaction(reaction.rawValue, referenceId: referanceId, referenceType: referenceType, completion: completion)
+        }
     }
 }

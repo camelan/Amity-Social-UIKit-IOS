@@ -27,19 +27,23 @@ final class AmityPostReviewSettingsCommunityViewModel: AmityPostReviewSettingsCo
     }
     
     func getCommunity(_ completion: ((Result<AmityCommunityModel, AmityError>) -> Void)?) {
-        community = communityRepository?.getCommunity(withId: communityId)
-        token = community?.observe { [weak self] (community, error) in
-            if community.dataStatus == .fresh {
-                self?.token?.invalidate()
-                guard let object = community.object else {
-                    if let error = AmityError(error: error) {
-                        completion?(.failure(error))
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.community = self.communityRepository?.getCommunity(withId: self.communityId)
+            self.token = self.community?.observe { [weak self] (community, error) in
+                if community.dataStatus == .fresh {
+                    self?.token?.invalidate()
+                    guard let object = community.object else {
+                        if let error = AmityError(error: error) {
+                            AmityUIKitManager.logger?(.error(error))
+                            completion?(.failure(error))
+                        }
+                        return
                     }
-                    return
+                    
+                    let model = AmityCommunityModel(object: object)
+                    completion?(.success(model))
                 }
-                
-                let model = AmityCommunityModel(object: object)
-                completion?(.success(model))
             }
         }
     }

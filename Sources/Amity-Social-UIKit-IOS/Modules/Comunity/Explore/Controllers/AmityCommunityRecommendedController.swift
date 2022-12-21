@@ -21,17 +21,20 @@ final class AmityCommunityRecommendedController: AmityCommunityRecommendedContro
     private let maxRecommended: UInt = 4
     
     func retrieve(_ completion: ((Result<[AmityCommunityModel], AmityError>) -> Void)?) {
-        collection = repository.getRecommendedCommunities()
-        token = collection?.observe { [weak self] (collection, change, error) in
-            if collection.dataStatus == .fresh {
-                guard let strongSelf = self else { return }
-                if let error = AmityError(error: error) {
-                    completion?(.failure(error))
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.collection = self.repository.getRecommendedCommunities()
+            self.token = self.collection?.observe { [weak self] (collection, change, error) in
+                if collection.dataStatus == .fresh {
+                    guard let strongSelf = self else { return }
+                    if let error = AmityError(error: error) {
+                        completion?(.failure(error))
+                    } else {
+                        completion?(.success(strongSelf.prepareDataSource()))
+                    }
                 } else {
-                    completion?(.success(strongSelf.prepareDataSource()))
+                    completion?(.failure(AmityError(error: error) ?? .unknown))
                 }
-            } else {
-                completion?(.failure(AmityError(error: error) ?? .unknown))
             }
         }
     }

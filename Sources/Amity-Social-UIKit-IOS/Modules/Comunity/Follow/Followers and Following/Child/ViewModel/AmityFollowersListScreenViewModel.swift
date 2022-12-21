@@ -81,7 +81,9 @@ extension AmityFollowersListScreenViewModel {
             if success {
                 strongSelf.delegate?.screenViewModel(strongSelf, didReportUserSuccess: indexPath)
             } else {
-                strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
             }
         }
     }
@@ -94,7 +96,9 @@ extension AmityFollowersListScreenViewModel {
             if success {
                 strongSelf.delegate?.screenViewModel(strongSelf, didUnreportUserSuccess: indexPath)
             } else {
-                strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
             }
         }
     }
@@ -117,7 +121,9 @@ extension AmityFollowersListScreenViewModel {
                 strongSelf.delegate?.screenViewModel(strongSelf, didRemoveUser: indexPath)
                 strongSelf.getFollowsList()
             } else if let error = error {
-                strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)    
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                strongSelf.delegate?.screenViewModel(strongSelf, failure: error)    
             }
         }
     }

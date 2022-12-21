@@ -34,17 +34,17 @@ class AmityFileService {
             completion(.failure(AmityError.fileServiceIsNotReady))
             return
         }
-        
-        fileRepository.uploadImage(image, progress: { progress in
-            progressHandler(progress)
-        }) { (imageData, error) in
-            if let data = imageData {
-                completion(.success(data))
-            } else {
-                completion(.failure(AmityError.unknown))
+        DispatchQueue.main.async { 
+            fileRepository.uploadImage(image, progress: { progress in
+                progressHandler(progress)
+            }) { (imageData, error) in
+                if let data = imageData {
+                    completion(.success(data))
+                } else {
+                    completion(.failure(AmityError.unknown))
+                }
             }
         }
-        
     }
     
     func uploadFile(file: AmityUploadableFile, progressHandler: @escaping (Double) -> Void, completion: @escaping (Result<AmityFileData, Error>) -> Void) {
@@ -53,17 +53,17 @@ class AmityFileService {
             completion(.failure(AmityError.fileServiceIsNotReady))
             return
         }
-        
-        fileRepository.uploadFile(file, progress: { fileUploadProgress in
-            progressHandler(fileUploadProgress)
-        }) { fileData, error in
-            if let data = fileData {
-                completion(.success(data))
-            } else {
-                completion(.failure(AmityError.unknown))
+        DispatchQueue.main.async {
+            fileRepository.uploadFile(file, progress: { fileUploadProgress in
+                progressHandler(fileUploadProgress)
+            }) { fileData, error in
+                if let data = fileData {
+                    completion(.success(data))
+                } else {
+                    completion(.failure(AmityError.unknown))
+                }
             }
         }
-        
     }
     
     func uploadVideo(url: URL,
@@ -121,19 +121,22 @@ class AmityFileService {
             completion?(.failure(AmityError.fileServiceIsNotReady))
             return
         }
-        
-        fileRepository.downloadImage(fromURL: imageURL, size: size) { [weak self] (url, error) in
-            if let imagePath = url?.path, // a local path returned from sdk
-               let image = UIImage(contentsOfFile: imagePath) {
-                self?.pathCache[imageCacheKey] = imagePath
-                completion?(.success(image))
-            } else if let error = error {
-                completion?(.failure(error))
-            } else {
-                let error = AmityError.unknown
-                completion?(.failure(error))
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            fileRepository.downloadImage(fromURL: imageURL, size: size) { [weak self] (url, error) in
+                if let imagePath = url?.path, // a local path returned from sdk
+                   let image = UIImage(contentsOfFile: imagePath) {
+                    self?.pathCache[imageCacheKey] = imagePath
+                    completion?(.success(image))
+                } else if let error = error {
+                    completion?(.failure(error))
+                } else {
+                    let error = AmityError.unknown
+                    completion?(.failure(error))
+                }
             }
         }
+        
         
     }
     
@@ -143,18 +146,19 @@ class AmityFileService {
             completion?(.failure(AmityError.fileServiceIsNotReady))
             return
         }
-        
-        fileRepository.downloadFileAsData(fromURL: fileURL) { (data, error) in
-            if let data = data {
-                completion?(.success(data))
-            } else if let error = error {
-                completion?(.failure(error))
-            } else {
-                let error = AmityError.unknown
-                completion?(.failure(error))
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            fileRepository.downloadFileAsData(fromURL: fileURL) { (data, error) in
+                if let data = data {
+                    completion?(.success(data))
+                } else if let error = error {
+                    completion?(.failure(error))
+                } else {
+                    let error = AmityError.unknown
+                    completion?(.failure(error))
+                }
             }
         }
-        
     }
     
 }

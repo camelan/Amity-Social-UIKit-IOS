@@ -88,9 +88,12 @@ extension AmityPostGalleryScreenViewModel: AmityPostGalleryScreenViewModelAction
             assertionFailure("postRepository must be ready at this point.")
             return
         }
-        posts = postRepository.getPosts(options)
-        token = posts?.observe { [weak self] _, changes, error in
-            self?.updateAndRebuildDataSource()
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.posts = postRepository.getPosts(options)
+            self.token = self.posts?.observe { [weak self] _, changes, error in
+                self?.updateAndRebuildDataSource()
+            }
         }
     }
     

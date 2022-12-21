@@ -21,11 +21,15 @@ class AmityCategoryListScreenViewModel: AmityCategoryListScreenViewModelType {
     }
     
     private func setupCollection() {
-        categoryCollection = categoryRepository.getCategories(sortBy: .displayName, includeDeleted: false)
-        categoryToken = categoryCollection?.observe { [weak self] collection, _, error in
-            guard let strongSelf = self else { return }
-            strongSelf.delegate?.screenViewModelDidUpdateData(strongSelf)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.categoryCollection = self.categoryRepository.getCategories(sortBy: .displayName, includeDeleted: false)
+            self.categoryToken = self.categoryCollection?.observe { [weak self] collection, _, error in
+                guard let strongSelf = self else { return }
+                strongSelf.delegate?.screenViewModelDidUpdateData(strongSelf)
+            }
         }
+        
     }
     
     // MARK: - Data Source

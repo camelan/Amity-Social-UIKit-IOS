@@ -18,15 +18,19 @@ class AmityPostTargetPickerScreenViewModel: AmityPostTargetPickerScreenViewModel
     private var categoryCollectionToken:AmityNotificationToken?
     
     func observe() {
-        communityCollection = communityRepository.getCommunities(displayName: "", filter: .userIsMember, sortBy: .displayName, categoryId: nil, includeDeleted: false)
-        categoryCollectionToken = communityCollection?.observe({ [weak self] (collection, _, _) in
-            guard let strongSelf = self else { return }
-            switch collection.dataStatus {
-            case .fresh:
-                strongSelf.delegate?.screenViewModelDidUpdateItems(strongSelf)
-            default: break
-            }
-        })
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.communityCollection = self.communityRepository.getCommunities(displayName: "", filter: .userIsMember, sortBy: .displayName, categoryId: nil, includeDeleted: false)
+            self.categoryCollectionToken = self.communityCollection?.observe({ [weak self] (collection, _, _) in
+                guard let strongSelf = self else { return }
+                switch collection.dataStatus {
+                case .fresh:
+                    strongSelf.delegate?.screenViewModelDidUpdateItems(strongSelf)
+                default: break
+                }
+            })
+        }
+        
     }
     
     func numberOfItems() -> Int {

@@ -113,30 +113,33 @@ extension AmityPollCreatorScreenViewModel {
             builder.setTimeToClosePoll(timeMilliseconds)
         }
         builder.setAnswerType(isMultipleSelection ? .multiple : .single)
-        pollRepository.createPoll(builder) { [weak self] pollId, error in
-            guard let strongSelf = self else { return }
-            if let pollId = pollId {
-                let pollPostBuilder = AmityPollPostBuilder()
-                pollPostBuilder.setText(strongSelf.pollQuestion)
-                pollPostBuilder.setPollId(pollId)
-                var targetId: String? = nil
-                var targetType = AmityPostTargetType.user
-                
-                switch strongSelf.postTarget {
-                case .community(let object):
-                    targetId = object.communityId
-                    targetType = .community
-                default: break
-                }
-                
-                if let metadata = metadata, let mentionees = mentionees {
-                    self?.postRepository.createPost(pollPostBuilder, targetId: targetId, targetType: targetType, metadata: metadata, mentionees: mentionees, completion: { post, error in
-                        self?.handleResponse(post: post, error: error)
-                    })
-                } else {
-                    self?.postRepository.createPost(pollPostBuilder, targetId: targetId, targetType: targetType, completion: { post, error in
-                        self?.handleResponse(post: post, error: error)
-                    })
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.pollRepository.createPoll(builder) { [weak self] pollId, error in
+                guard let strongSelf = self else { return }
+                if let pollId = pollId {
+                    let pollPostBuilder = AmityPollPostBuilder()
+                    pollPostBuilder.setText(strongSelf.pollQuestion)
+                    pollPostBuilder.setPollId(pollId)
+                    var targetId: String? = nil
+                    var targetType = AmityPostTargetType.user
+                    
+                    switch strongSelf.postTarget {
+                    case .community(let object):
+                        targetId = object.communityId
+                        targetType = .community
+                    default: break
+                    }
+                    
+                    if let metadata = metadata, let mentionees = mentionees {
+                        self?.postRepository.createPost(pollPostBuilder, targetId: targetId, targetType: targetType, metadata: metadata, mentionees: mentionees, completion: { post, error in
+                            self?.handleResponse(post: post, error: error)
+                        })
+                    } else {
+                        self?.postRepository.createPost(pollPostBuilder, targetId: targetId, targetType: targetType, completion: { post, error in
+                            self?.handleResponse(post: post, error: error)
+                        })
+                    }
                 }
             }
         }

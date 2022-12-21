@@ -126,6 +126,7 @@ extension AmityChannelMemberScreenViewModel {
         addMemberController.add(currentUsers: members, newUsers: users, { [weak self] (amityError, controllerError) in
             guard let strongSelf = self else { return }
             if let error = amityError {
+                AmityUIKitManager.logger?(.error(error))
                 strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
             } else if let controllerError = controllerError {
                 switch controllerError {

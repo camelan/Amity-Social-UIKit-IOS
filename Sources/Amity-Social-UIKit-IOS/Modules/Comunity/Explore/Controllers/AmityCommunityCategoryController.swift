@@ -21,17 +21,23 @@ final class AmityCommunityCategoryController: AmityCommunityCategoryControllerPr
     private let maxCategories: UInt = 8
     
     func retrieve(_ completion: ((Result<[AmityCommunityCategoryModel], AmityError>) -> Void)?) {
-        collection = repository.getCategories(sortBy: .displayName, includeDeleted: false)
-        token = collection?.observe { [weak self] (collection, change, error) in
-            if collection.dataStatus == .fresh {
-                guard let strongSelf = self else { return }
-                if let error = AmityError(error: error) {
-                    completion?(.failure(error))
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.collection = self.repository.getCategories(sortBy: .displayName, includeDeleted: false)
+            self.token = self.collection?.observe { [weak self] (collection, change, error) in
+                if collection.dataStatus == .fresh {
+                    guard let strongSelf = self else { return }
+                    if let error = AmityError(error: error) {
+                        AmityUIKitManager.logger?(.error(error))
+                        completion?(.failure(error))
+                    } else {
+                        completion?(.success(strongSelf.prepareDataSource()))
+                    }
                 } else {
-                    completion?(.success(strongSelf.prepareDataSource()))
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    completion?(.failure(error))
                 }
-            } else {
-                completion?(.failure(AmityError(error: error) ?? .unknown))
             }
         }
     }

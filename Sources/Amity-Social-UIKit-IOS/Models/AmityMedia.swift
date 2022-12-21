@@ -145,7 +145,9 @@ public class AmityMedia: Equatable, Hashable {
             completion?(.success(image))
         case .downloadableImage, .downloadableVideo, .uploadedImage, .uploadedVideo, .none, .uploading, .error, .localURL:
             assertionFailure("This function for uploading process")
-            completion?(.failure(AmityError.unknown))
+            let error = AmityError.unknown
+            AmityUIKitManager.logger?(.warning(error))
+            completion?(.failure(error))
         }
     }
     
