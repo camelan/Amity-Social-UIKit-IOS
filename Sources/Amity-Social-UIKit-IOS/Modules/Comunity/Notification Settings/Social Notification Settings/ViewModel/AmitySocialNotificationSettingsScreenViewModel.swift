@@ -110,7 +110,9 @@ class AmitySocialNotificationSettingsScreenViewModel: AmityPostNotificationSetti
             } else {
                 // if error, revert data changes to original
                 strongSelf.eventSettingMap = strongSelf.originalEventSettingMap
-                strongSelf.delegate?.screenViewModel(strongSelf, didUpdateSettingFailWithError: AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                strongSelf.delegate?.screenViewModel(strongSelf, didUpdateSettingFailWithError: error)
             }
             strongSelf.prepareSettingItems()
         }

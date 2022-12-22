@@ -28,16 +28,19 @@ class AmityCommentFetchCommentPostController: AmityCommentFetchCommentPostContro
     }
     
     func getCommentsForPostId(withReferenceId postId: String, referenceType: AmityCommentReferenceType, filterByParentId isParent: Bool, parentId: String?, orderBy: AmityOrderBy, includeDeleted: Bool, completion: ((Result<[AmityCommentModel], AmityError>) -> Void)?) {
-        
-        token?.invalidate()
-        collection = repository.getCommentsWithReferenceId(postId, referenceType: referenceType, filterByParentId: isParent, parentId: parentId, orderBy: orderBy, includeDeleted: includeDeleted)
-        
-        token = collection?.observe { [weak self] (commentCollection, _, error) in
-            guard let strongSelf = self else { return }
-            if let error = AmityError(error: error) {
-                completion?(.failure(error))
-            } else {
-                completion?(.success(strongSelf.prepareData()))
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.token?.invalidate()
+            self.collection = self.repository.getCommentsWithReferenceId(postId, referenceType: referenceType, filterByParentId: isParent, parentId: parentId, orderBy: orderBy, includeDeleted: includeDeleted)
+            
+            self.token = self.collection?.observe { [weak self] (commentCollection, _, error) in
+                guard let strongSelf = self else { return }
+                if let error = AmityError(error: error) {
+                    completion?(.failure(error))
+                    AmityUIKitManager.logger?(.error(error))
+                } else {
+                    completion?(.success(strongSelf.prepareData()))
+                }
             }
         }
     }

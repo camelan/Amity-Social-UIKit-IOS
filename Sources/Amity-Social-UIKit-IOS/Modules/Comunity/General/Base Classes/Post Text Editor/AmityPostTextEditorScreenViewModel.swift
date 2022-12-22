@@ -19,11 +19,14 @@ class AmityPostTextEditorScreenViewModel: AmityPostTextEditorScreenViewModelType
     // MARK: - Datasource
     
     func loadPost(for postId: String) {
-        postObjectToken = postrepository.getPostForPostId(postId).observe { [weak self] post, error in
-            guard let strongSelf = self, let post = post.object else { return }
-            strongSelf.delegate?.screenViewModelDidLoadPost(strongSelf, post: post)
-            // observe once
-            strongSelf.postObjectToken?.invalidate()
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.postObjectToken = self.postrepository.getPostForPostId(postId).observe { [weak self] post, error in
+                guard let strongSelf = self, let post = post.object else { return }
+                strongSelf.delegate?.screenViewModelDidLoadPost(strongSelf, post: post)
+                // observe once
+                strongSelf.postObjectToken?.invalidate()
+            }
         }
     }
     
@@ -71,16 +74,19 @@ class AmityPostTextEditorScreenViewModel: AmityPostTextEditorScreenViewModelType
             textPostBuilder.setText(text)
             postBuilder = textPostBuilder
         }
-        
-        if let mentionees = mentionees {
-            postrepository.createPost(postBuilder, targetId: communityId, targetType: targetType, metadata: metadata, mentionees: mentionees) { [weak self] (post, error) in
-                self?.createPostResponseHandler(forPost: post, error: error)
-            }
-        } else {
-            postrepository.createPost(postBuilder, targetId: communityId, targetType: targetType) { [weak self] (post, error) in
-                self?.createPostResponseHandler(forPost: post, error: error)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if let mentionees = mentionees {
+                self.postrepository.createPost(postBuilder, targetId: communityId, targetType: targetType, metadata: metadata, mentionees: mentionees) { [weak self] (post, error) in
+                    self?.createPostResponseHandler(forPost: post, error: error)
+                }
+            } else {
+                self.postrepository.createPost(postBuilder, targetId: communityId, targetType: targetType) { [weak self] (post, error) in
+                    self?.createPostResponseHandler(forPost: post, error: error)
+                }
             }
         }
+        
     }
     
     /*
@@ -122,16 +128,18 @@ class AmityPostTextEditorScreenViewModel: AmityPostTextEditorScreenViewModelType
             textPostBuilder.setText(text)
             postBuilder = textPostBuilder
         }
-        
-        if let mentionees = mentionees {
-            postrepository.updatePost(withPostId: oldPost.postId, builder: postBuilder, metadata: metadata, mentionees: mentionees) { [weak self] (post, error) in
-                guard let strongSelf = self else { return }
-                strongSelf.updatePostResponseHandler(forPost: post, error: error)
-            }
-        } else {
-            postrepository.updatePost(withPostId: oldPost.postId, builder: postBuilder) { [weak self] (post, error) in
-                guard let strongSelf = self else { return }
-                strongSelf.updatePostResponseHandler(forPost: post, error: error)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if let mentionees = mentionees {
+                self.postrepository.updatePost(withPostId: oldPost.postId, builder: postBuilder, metadata: metadata, mentionees: mentionees) { [weak self] (post, error) in
+                    guard let strongSelf = self else { return }
+                    strongSelf.updatePostResponseHandler(forPost: post, error: error)
+                }
+            } else {
+                self.postrepository.updatePost(withPostId: oldPost.postId, builder: postBuilder) { [weak self] (post, error) in
+                    guard let strongSelf = self else { return }
+                    strongSelf.updatePostResponseHandler(forPost: post, error: error)
+                }
             }
         }
         

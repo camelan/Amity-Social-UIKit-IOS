@@ -22,14 +22,18 @@ class AmityUserProfileEditorScreenViewModel: AmityUserProfileEditorScreenViewMod
     var user: AmityUserModel?
     
     init() {
-        userObject = userRepository.getUser(AmityUIKitManagerInternal.shared.client.currentUserId!)
-        userCollectionToken = userObject?.observe { [weak self] user, error in
-            guard let strongSelf = self,
-                let user = user.object else{ return }
-            
-            strongSelf.user = AmityUserModel(user: user)
-            strongSelf.delegate?.screenViewModelDidUpdate(strongSelf)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.userObject = self.userRepository.getUser(AmityUIKitManagerInternal.shared.client.currentUserId!)
+            self.userCollectionToken = self.userObject?.observe { [weak self] user, error in
+                guard let strongSelf = self,
+                    let user = user.object else{ return }
+                
+                strongSelf.user = AmityUserModel(user: user)
+                strongSelf.delegate?.screenViewModelDidUpdate(strongSelf)
+            }
         }
+        
     }
     
     func update(displayName: String, about: String) {

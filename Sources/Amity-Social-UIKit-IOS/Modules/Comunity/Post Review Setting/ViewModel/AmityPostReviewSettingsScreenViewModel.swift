@@ -70,12 +70,15 @@ extension AmityPostReviewSettingsScreenViewModel {
         if Reachability.shared.isConnectedToNetwork {
             let builder = AmityCommunityUpdateDataBuilder()
             builder.isPostReviewEnabled(isPostReview)
-            communityRepository.updateCommunity(withId: communityId, builder: builder) { [weak self] (community, error) in
-                guard let strongSelf = self else { return }
-                if let error = error {
-                    strongSelf.delegate?.screenViewModel(strongSelf, didFailWithAction: content)
-                } else {
-                    
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                self.communityRepository.updateCommunity(withId: self.communityId, builder: builder) { [weak self] (community, error) in
+                    guard let strongSelf = self else { return }
+                    if let error = error {
+                        strongSelf.delegate?.screenViewModel(strongSelf, didFailWithAction: content)
+                    } else {
+                        
+                    }
                 }
             }
         } else {

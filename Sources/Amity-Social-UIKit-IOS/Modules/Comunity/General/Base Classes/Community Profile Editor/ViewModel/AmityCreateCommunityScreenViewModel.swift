@@ -168,7 +168,9 @@ extension AmityCreateCommunityScreenViewModel {
                     strongSelf.createCommunity(image: image)
                 case .failure(let error):
                     AmityHUD.hide()
-                    strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
                 }
             }
         } else {
@@ -186,7 +188,9 @@ extension AmityCreateCommunityScreenViewModel {
                     strongSelf.updateCommunity(image: image)
                 case .failure(let error):
                     AmityHUD.hide()
-                    strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
                 }
             }
         } else {
@@ -222,13 +226,16 @@ extension AmityCreateCommunityScreenViewModel {
     
     func getInfo(communityId: String) {
         self.communityId = communityId
-        communityInfoToken = repository.getCommunity(withId: communityId).observe{ [weak self] (community, error) in
-            guard let object = community.object else { return }
-            let model = AmityCommunityModel(object: object)
-            self?.community.value = model
-            self?.showProfile(model: model)
-            if community.dataStatus == .fresh {
-                self?.communityInfoToken?.invalidate()
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.communityInfoToken = self.repository.getCommunity(withId: communityId).observe{ [weak self] (community, error) in
+                guard let object = community.object else { return }
+                let model = AmityCommunityModel(object: object)
+                self?.community.value = model
+                self?.showProfile(model: model)
+                if community.dataStatus == .fresh {
+                    self?.communityInfoToken?.invalidate()
+                }
             }
         }
     }
@@ -266,14 +273,18 @@ private extension AmityCreateCommunityScreenViewModel {
         if let image = image {
             builder.setAvatar(image)
         }
-        
-        repository.createCommunity(with: builder) { [weak self] (community, error) in
-            guard let strongSelf = self else { return }
-            
-            if let community = community {
-                strongSelf.delegate?.screenViewModel(strongSelf, state: .createSuccess(communityId: community.communityId))
-            } else {
-                strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.repository.createCommunity(with: builder) { [weak self] (community, error) in
+                guard let strongSelf = self else { return }
+                
+                if let community = community {
+                    strongSelf.delegate?.screenViewModel(strongSelf, state: .createSuccess(communityId: community.communityId))
+                } else {
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
+                }
             }
         }
     }
@@ -294,15 +305,20 @@ private extension AmityCreateCommunityScreenViewModel {
         if let image = image {
             builder.setAvatar(image)
         }
-        
-        repository.updateCommunity(withId: communityId, builder: builder) { [weak self] (community, error) in
-            guard let strongSelf = self else { return }
-            if let error = error {
-                strongSelf.delegate?.screenViewModel(strongSelf, failure: AmityError(error: error) ?? .unknown)
-            } else {
-                strongSelf.delegate?.screenViewModel(strongSelf, state: .updateSuccess)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.repository.updateCommunity(withId: self.communityId, builder: builder) { [weak self] (community, error) in
+                guard let strongSelf = self else { return }
+                if let error = error {
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModel(strongSelf, failure: error)
+                } else {
+                    strongSelf.delegate?.screenViewModel(strongSelf, state: .updateSuccess)
+                }
             }
         }
+        
     }
     
 }

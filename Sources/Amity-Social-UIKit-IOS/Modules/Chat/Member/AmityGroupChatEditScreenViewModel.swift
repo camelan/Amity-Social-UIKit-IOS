@@ -52,44 +52,55 @@ class AmityGroupChatEditScreenViewModel: AmityGroupChatEditorScreenViewModelType
     
     init(channelId: String) {
         self.channelId = channelId
-        channelUpdateBuilder = AmityChannelUpdateBuilder(channelId: channelId)
-        channelNotificationToken = channelRepository.getChannel(channelId)
-            .observe({ [weak self] channel, error in
-                guard let weakself = self,
-                    let channel = channel.object else{ return }
-                weakself.channel = channel
-                weakself.delegate?.screenViewModelDidUpdate(weakself)
-            })
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.channelUpdateBuilder = AmityChannelUpdateBuilder(channelId: channelId)
+            self.channelNotificationToken = self.channelRepository.getChannel(channelId)
+                .observe({ [weak self] channel, error in
+                    guard let weakself = self,
+                        let channel = channel.object else{ return }
+                    weakself.channel = channel
+                    weakself.delegate?.screenViewModelDidUpdate(weakself)
+                })
+        }
+        
     }
     
     func update(displayName: String) {
-        // Update
-        channelUpdateBuilder.setDisplayName(displayName)
-        channelUpdateToken?.invalidate()
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            // Update
+            self.channelUpdateBuilder.setDisplayName(displayName)
+            self.channelUpdateToken?.invalidate()
+            
+            self.channelUpdateToken = self.channelRepository.updateChannel(with: self.channelUpdateBuilder).observe({ [weak self] (channel, error) in
+                guard let weakSelf = self else { return }
+                
+                if let error = error {
+                    weakSelf.delegate?.screenViewModelDidUpdateFailed(weakSelf, withError: error.localizedDescription)
+                } else {
+                    weakSelf.delegate?.screenViewModelDidUpdateSuccess(weakSelf)
+                }
+            })
+        }
         
-        channelUpdateToken = channelRepository.updateChannel(with: channelUpdateBuilder).observe({ [weak self] (channel, error) in
-            guard let weakSelf = self else { return }
-            
-            if let error = error {
-                weakSelf.delegate?.screenViewModelDidUpdateFailed(weakSelf, withError: error.localizedDescription)
-            } else {
-                weakSelf.delegate?.screenViewModelDidUpdateSuccess(weakSelf)
-            }
-            
-        })
     }
     
     func update(avatar: UIImage, completion: @escaping (Bool) -> ()) {
-        // Update user avatar
-        channelUpdateToken?.invalidate()
-        fileRepository.uploadImage(avatar, progress: nil) { [weak self] (imageData, error) in
-            guard let weakSelf = self else { return }
-            weakSelf.channelUpdateBuilder.setAvatar(imageData)
-            weakSelf.channelUpdateToken = weakSelf.channelRepository.updateChannel(with: weakSelf.channelUpdateBuilder).observe({ [weak self] (channel, error) in
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            // Update user avatar
+            self.channelUpdateToken?.invalidate()
+            self.fileRepository.uploadImage(avatar, progress: nil) { [weak self] (imageData, error) in
                 guard let weakSelf = self else { return }
-                completion(error == nil)
-            })
+                weakSelf.channelUpdateBuilder.setAvatar(imageData)
+                weakSelf.channelUpdateToken = weakSelf.channelRepository.updateChannel(with: weakSelf.channelUpdateBuilder).observe({ [weak self] (channel, error) in
+                    guard let weakSelf = self else { return }
+                    completion(error == nil)
+                })
+            }
         }
+        
     }
     
     func getChannelEditUserPermission(_ completion: ((Bool) -> Void)?) {

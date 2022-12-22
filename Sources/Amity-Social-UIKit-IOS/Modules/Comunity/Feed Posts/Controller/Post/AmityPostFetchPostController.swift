@@ -20,16 +20,22 @@ final class AmityPostFetchPostController: AmityPostFetchPostControllerProtocol {
     private var token: AmityNotificationToken?
     
     func getPostForPostId(withPostId postId: String, completion: ((Result<AmityPostModel, AmityError>) -> Void)?) {
-        postObject = repository.getPostForPostId(postId)
-        token = postObject?.observe { [weak self] (_, error) in
-            guard let strongSelf = self else { return }
-            if let error = AmityError(error: error) {
-                completion?(.failure(error))
-            } else {
-                if let model = strongSelf.prepareData() {
-                    completion?(.success(model))
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.postObject = self.repository.getPostForPostId(postId)
+            self.token = self.postObject?.observe { [weak self] (_, error) in
+                guard let strongSelf = self else { return }
+                if let error = AmityError(error: error) {
+                    AmityUIKitManager.logger?(.error(error))
+                    completion?(.failure(error))
                 } else {
-                    completion?(.failure(.unknown))
+                    if let model = strongSelf.prepareData() {
+                        completion?(.success(model))
+                    } else {
+                        let error: AmityError = .unknown
+                        AmityUIKitManager.logger?(.error(error))
+                        completion?(.failure(error))
+                    }
                 }
             }
         }

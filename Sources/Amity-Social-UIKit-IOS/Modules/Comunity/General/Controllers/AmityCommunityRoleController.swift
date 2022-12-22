@@ -29,6 +29,7 @@ final class AmityCommunityRoleController: AmityCommunityRoleControllerProtocol {
                 completion?(nil)
             } else {
                 if let error = AmityError(error: error) {
+                    AmityUIKitManager.logger?(.error(error))
                     completion?(error)
                 } else {
                     completion?(AmityError.unknown)
@@ -43,7 +44,9 @@ final class AmityCommunityRoleController: AmityCommunityRoleControllerProtocol {
             if success {
                 completion?(nil)
             } else {
-                completion?(AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                completion?(error)
             }  
         })
     }

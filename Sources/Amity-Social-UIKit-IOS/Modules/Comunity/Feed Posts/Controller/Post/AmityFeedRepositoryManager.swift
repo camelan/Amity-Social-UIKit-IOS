@@ -73,6 +73,7 @@ final class AmityFeedRepositoryManager: AmityFeedRepositoryManagerProtocol {
                 guard let strongSelf = self else { return }
                 if let error = AmityError(error: error) {
                     completion?(.failure(error))
+                    AmityUIKitManager.logger?(.error(error))
                 } else {
                     completion?(.success(strongSelf.prepareDataSource(feedType: type)))
                 }

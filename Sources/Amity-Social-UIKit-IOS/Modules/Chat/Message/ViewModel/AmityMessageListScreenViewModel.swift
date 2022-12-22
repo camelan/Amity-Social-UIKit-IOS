@@ -213,29 +213,35 @@ extension AmityMessageListScreenViewModel {
     }
     
     func getChannel(){
-        channelNotificationToken?.invalidate()
-        channelNotificationToken = channelRepository.getChannel(channelId).observe { [weak self] (channel, error) in
-            guard let object = channel.object else { return }
-            let channelModel = AmityChannelModel(object: object)
-            self?.delegate?.screenViewModelDidGetChannel(channel: channelModel)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.channelNotificationToken?.invalidate()
+            self.channelNotificationToken = self.channelRepository.getChannel(self.channelId).observe { [weak self] (channel, error) in
+                guard let object = channel.object else { return }
+                let channelModel = AmityChannelModel(object: object)
+                self?.delegate?.screenViewModelDidGetChannel(channel: channelModel)
+            }
         }
     }
     
     func getMessage() {
-        
-        messagesCollection = messageRepository.getMessages(channelId: channelId, includingTags: [], excludingTags: [], filterByParentId: false, parentId: nil, reverse: true)
-        
-        messagesNotificationToken = messagesCollection?.observe { [weak self] (liveCollection, change, error) in
-            self?.groupMessages(in: liveCollection, change: change)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.messagesCollection = self.messageRepository.getMessages(channelId: self.channelId, includingTags: [], excludingTags: [], filterByParentId: false, parentId: nil, reverse: true)
+            
+            self.messagesNotificationToken = self.messagesCollection?.observe { [weak self] (liveCollection, change, error) in
+                self?.groupMessages(in: liveCollection, change: change)
+            }
+            
+            self.didEnterBackgroundObservation = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] notification in
+                self?.lastEnterBackground = Date()
+            }
+            
+            self.connectionObservation = AmityUIKitManagerInternal.shared.client.observe(\.connectionStatus) { [weak self] client, changes in
+                self?.connectionStateDidChanged()
+            }
         }
         
-        didEnterBackgroundObservation = NotificationCenter.default.addObserver(forName: UIApplication.didEnterBackgroundNotification, object: nil, queue: .main) { [weak self] notification in
-            self?.lastEnterBackground = Date()
-        }
-        
-        connectionObservation = AmityUIKitManagerInternal.shared.client.observe(\.connectionStatus) { [weak self] client, changes in
-            self?.connectionStateDidChanged()
-        }
         
     }
     
@@ -244,45 +250,59 @@ extension AmityMessageListScreenViewModel {
         guard !textMessage.isEmpty else {
             return
         }
-        messageRepository.createTextMessage(withChannelId: channelId, text: textMessage, tags: nil, parentId: nil) { [weak self] _,_ in
-            self?.text = ""
-            self?.delegate?.screenViewModelEvents(for: .didSendText)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.messageRepository.createTextMessage(withChannelId: self.channelId, text: textMessage, tags: nil, parentId: nil) { [weak self] _,_ in
+                self?.text = ""
+                self?.delegate?.screenViewModelEvents(for: .didSendText)
+            }
         }
+        
     }
     
     func editText(with text: String, messageId: String) {
         let textMessage = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !textMessage.isEmpty else { return }
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.editor = AmityMessageEditor(client: AmityUIKitManagerInternal.shared.client, messageId: messageId)
+            self.editor?.editText(textMessage, completion: { [weak self] (isSuccess, error) in
+                guard isSuccess else { return }
+                
+                self?.delegate?.screenViewModelEvents(for: .didEditText)
+                self?.editor = nil
+            })
+        }
         
-        editor = AmityMessageEditor(client: AmityUIKitManagerInternal.shared.client, messageId: messageId)
-        editor?.editText(textMessage, completion: { [weak self] (isSuccess, error) in
-            guard isSuccess else { return }
-            
-            self?.delegate?.screenViewModelEvents(for: .didEditText)
-            self?.editor = nil
-        })
     }
     
     func delete(withMessage message: AmityMessageModel, at indexPath: IndexPath) {
-        messageRepository?.deleteMessage(withId: message.messageId, completion: { [weak self] (status, error) in
-            guard error == nil , status else { return }
-            switch message.messageType {
-            case .audio:
-                AmityFileCache.shared.deleteFile(for: .audioDirectory, fileName: message.messageId + ".m4a")
-            default:
-                break
-            }
-            self?.delegate?.screenViewModelEvents(for: .didDelete(indexPath: indexPath))
-            self?.editor = nil
-        })
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.messageRepository?.deleteMessage(withId: message.messageId, completion: { [weak self] (status, error) in
+                guard error == nil , status else { return }
+                switch message.messageType {
+                case .audio:
+                    AmityFileCache.shared.deleteFile(for: .audioDirectory, fileName: message.messageId + ".m4a")
+                default:
+                    break
+                }
+                self?.delegate?.screenViewModelEvents(for: .didDelete(indexPath: indexPath))
+                self?.editor = nil
+            })
+        }
+        
     }
     
     
     func deleteErrorMessage(with messageId: String, at indexPath: IndexPath) {
-        messageRepository.deleteFailedMessage(messageId) { [weak self] (isSuccess, error) in
-            if isSuccess {
-                self?.delegate?.screenViewModelEvents(for: .didDeeleteErrorMessage(indexPath: indexPath))
-                self?.delegate?.screenViewModelEvents(for: .updateMessages)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.messageRepository.deleteFailedMessage(messageId) { [weak self] (isSuccess, error) in
+                if isSuccess {
+                    self?.delegate?.screenViewModelEvents(for: .didDeeleteErrorMessage(indexPath: indexPath))
+                    self?.delegate?.screenViewModelEvents(for: .updateMessages)
+                }
             }
         }
     }

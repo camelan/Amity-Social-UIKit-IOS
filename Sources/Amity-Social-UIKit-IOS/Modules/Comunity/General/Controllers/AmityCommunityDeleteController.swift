@@ -24,13 +24,19 @@ final class AmityCommunityDeleteController: AmityCommunityDeleteControllerProtoc
     }
     
     func delete(_ completion: @escaping (AmityError?) -> Void) {
-        repository.deleteCommunity(withId: communityId) { (success, error) in
-            if success {
-                completion(nil)
-            } else {
-                completion(AmityError(error: error) ?? .unknown)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.repository.deleteCommunity(withId: self.communityId) { (success, error) in
+                if success {
+                    completion(nil)
+                } else {
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    completion(error)
+                }
             }
         }
+        
     }
     
 }

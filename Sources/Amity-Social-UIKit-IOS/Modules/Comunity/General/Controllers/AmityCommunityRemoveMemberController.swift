@@ -27,7 +27,9 @@ final class AmityCommunityRemoveMemberController: AmityCommunityRemoveMemberCont
             if success {
                 completion(nil)
             } else {
-                completion(AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                completion(error)
             }
         })
     }

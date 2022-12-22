@@ -32,20 +32,24 @@ final class AmityCommunityRepositoryManager: AmityCommunityRepositoryManagerProt
     }
     
     func retrieveCommunity(_ completion: ((Result<AmityCommunityModel, AmityError>) -> Void)?) {
-        communityObject = communityRepository.getCommunity(withId: communityId)
-        token = communityObject?.observe { [weak self] community, error in
-            if community.dataStatus == .fresh {
-                self?.token?.invalidate()
-            }
-            guard let object = community.object else {
-                if let error = AmityError(error: error) {
-                    completion?(.failure(error))
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.communityObject = self.communityRepository.getCommunity(withId: self.communityId)
+            self.token = self.communityObject?.observe { [weak self] community, error in
+                if community.dataStatus == .fresh {
+                    self?.token?.invalidate()
                 }
-                return
+                guard let object = community.object else {
+                    if let error = AmityError(error: error) {
+                        AmityUIKitManager.logger?(.error(error))
+                        completion?(.failure(error))
+                    }
+                    return
+                }
+                
+                let model = AmityCommunityModel(object: object)
+                completion?(.success(model))
             }
-            
-            let model = AmityCommunityModel(object: object)
-            completion?(.success(model))
         }
     }
     
@@ -56,6 +60,7 @@ final class AmityCommunityRepositoryManager: AmityCommunityRepositoryManagerProt
                 if collection.dataStatus == .fresh {
                     self?.feedToken?.invalidate()
                     if let error = AmityError(error: error) {
+                        AmityUIKitManager.logger?(.error(error))
                         completion?(.failure(error))
                     } else {
                         completion?(.success(Int(collection.count())))
@@ -71,7 +76,9 @@ final class AmityCommunityRepositoryManager: AmityCommunityRepositoryManagerProt
             if success {
                 completion?(nil)
             } else {
-                completion?(AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                completion?(error)
             }
         }
     }

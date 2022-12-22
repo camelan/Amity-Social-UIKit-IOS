@@ -171,6 +171,7 @@ extension AmityCommunitySettingsViewController: AmityCommunitySettingsScreenView
     }
     
     func screenViewModel(_ viewModel: AmityCommunitySettingsScreenViewModelType, failure error: AmityError) {
+        AmityUIKitManager.logger?(.error(error))
         switch error {
         case .noPermission:
             AmityAlertController.present(title: AmityLocalizedStringSet.Community.alertUnableToPerformActionTitle.localizedString,

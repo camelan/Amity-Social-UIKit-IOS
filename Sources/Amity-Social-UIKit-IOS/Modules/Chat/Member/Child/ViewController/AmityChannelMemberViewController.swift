@@ -167,6 +167,7 @@ extension AmityChannelMemberViewController: AmityChannelMemberScreenViewModelDel
     
     func screenViewModel(_ viewModel: AmityChannelMemberScreenViewModel, failure error: AmityError) {
         AmityHUD.hide { [weak self] in
+            AmityUIKitManager.logger?(.error(error))
             switch error {
             case .noPermission:
                 let alert = UIAlertController(title: AmityLocalizedStringSet.Community.alertUnableToPerformActionTitle.localizedString, message: AmityLocalizedStringSet.Community.alertUnableToPerformActionDesc.localizedString, preferredStyle: .alert)

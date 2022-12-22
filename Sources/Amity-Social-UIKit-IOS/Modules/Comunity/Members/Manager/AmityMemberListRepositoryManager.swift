@@ -25,18 +25,21 @@ final class AmityMemberListRepositoryManager: AmityMemberListRepositoryManagerPr
     }
     
     func search(withText text: String, sortyBy: AmityUserSortOption, _ completion: (([AmityUserModel]) -> Void)?) {
-        collection = repository.searchUser(text, sortBy: sortyBy)
-        token?.invalidate()
-        token = collection?.observe { [weak self] (collection, change, error) in
-            if collection.dataStatus == .fresh {
-                var membersList: [AmityUserModel] = []
-                for index in 0..<collection.count() {
-                    guard let object = collection.object(at: index) else { continue }
-                    let model = AmityUserModel(user: object)
-                    membersList.append(model)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.collection = self.repository.searchUser(text, sortBy: sortyBy)
+            self.token?.invalidate()
+            self.token = self.collection?.observe { [weak self] (collection, change, error) in
+                if collection.dataStatus == .fresh {
+                    var membersList: [AmityUserModel] = []
+                    for index in 0..<collection.count() {
+                        guard let object = collection.object(at: index) else { continue }
+                        let model = AmityUserModel(user: object)
+                        membersList.append(model)
+                    }
+                    completion?(membersList)
+                    self?.token?.invalidate()
                 }
-                completion?(membersList)
-                self?.token?.invalidate()
             }
         }
     }

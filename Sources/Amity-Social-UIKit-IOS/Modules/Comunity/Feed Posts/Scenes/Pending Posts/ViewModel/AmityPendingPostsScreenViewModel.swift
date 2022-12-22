@@ -84,30 +84,40 @@ extension AmityPendingPostsScreenViewModel {
     }
    
     func approvePost(withPostId postId: String) {
-        feedRepository.approvePost(withPostId: postId, completion: nil)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.feedRepository.approvePost(withPostId: postId, completion: nil)
+        }
+        
     }
     
     func declinePost(withPostId postId: String) {
-        feedRepository.declinePost(withPostId: postId, completion: nil)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.feedRepository.declinePost(withPostId: postId, completion: nil)
+        }
     }
     
     func deletePost(withPostId postId: String) {
-        postViewModel.getPostForPostId(withPostId: postId) { [weak self] result in
-            guard let strongSelf = self else { return }
-            switch result {
-            case .success(let post):
-                switch post.feedType {
-                case .published, .declined:
-                    strongSelf.delegate?.screenViewModelDidDeletePostFail(title: AmityLocalizedStringSet.PendingPosts.postNotAvailable.localizedString,
-                                                                          message: AmityLocalizedStringSet.PendingPosts.alertDeleteFailApproveOrDecline.localizedString)
-                case .reviewing:
-                    self?.feedRepository.deletePost(withPostId: postId, parentId: nil, completion: nil)
-                @unknown default:
-                    break
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.postViewModel.getPostForPostId(withPostId: postId) { [weak self] result in
+                guard let strongSelf = self else { return }
+                switch result {
+                case .success(let post):
+                    switch post.feedType {
+                    case .published, .declined:
+                        strongSelf.delegate?.screenViewModelDidDeletePostFail(title: AmityLocalizedStringSet.PendingPosts.postNotAvailable.localizedString,
+                                                                              message: AmityLocalizedStringSet.PendingPosts.alertDeleteFailApproveOrDecline.localizedString)
+                    case .reviewing:
+                        self?.feedRepository.deletePost(withPostId: postId, parentId: nil, completion: nil)
+                    @unknown default:
+                        break
+                    }
+                case .failure:
+                    strongSelf.delegate?.screenViewModelDidDeletePostFail(title: AmityLocalizedStringSet.PendingPosts.alertDeleteFailTitle.localizedString,
+                                                                          message: AmityLocalizedStringSet.somethingWentWrongWithTryAgain.localizedString)
                 }
-            case .failure:
-                strongSelf.delegate?.screenViewModelDidDeletePostFail(title: AmityLocalizedStringSet.PendingPosts.alertDeleteFailTitle.localizedString,
-                                                                      message: AmityLocalizedStringSet.somethingWentWrongWithTryAgain.localizedString)
             }
         }
     }

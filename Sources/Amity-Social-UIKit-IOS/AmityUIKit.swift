@@ -9,8 +9,16 @@
 import UIKit
 import AmitySDK
 
+public enum AmityLogType {
+    case warning(Error)
+    case error(Error)
+    case info(String)
+}
+
 /// AmityUIKit
 public final class AmityUIKitManager {
+    
+    public static var logger: ((AmityLogType) -> Void)?
     
     private init() { }
     

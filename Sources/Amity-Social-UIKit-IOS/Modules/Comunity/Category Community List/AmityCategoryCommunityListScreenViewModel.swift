@@ -17,10 +17,13 @@ class AmityCategoryCommunityListScreenViewModel: AmityCategoryCommunityListScree
     weak var delegate: AmityCategoryCommunityListScreenViewModelDelegate?
     
     init(categoryId: String) {
-        communityCollection = communityrepository.getCommunities(displayName: nil, filter: .all, sortBy: .displayName, categoryId: categoryId, includeDeleted: false)
-        communityToken = communityCollection?.observe{ [weak self] _,_,_  in
-            guard let strongSelf = self else { return  }
-            strongSelf.delegate?.screenViewModelDidUpdateData(strongSelf)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.communityCollection = self.communityrepository.getCommunities(displayName: nil, filter: .all, sortBy: .displayName, categoryId: categoryId, includeDeleted: false)
+            self.communityToken = self.communityCollection?.observe{ [weak self] _,_,_  in
+                guard let strongSelf = self else { return  }
+                strongSelf.delegate?.screenViewModelDidUpdateData(strongSelf)
+            }
         }
     }
     
