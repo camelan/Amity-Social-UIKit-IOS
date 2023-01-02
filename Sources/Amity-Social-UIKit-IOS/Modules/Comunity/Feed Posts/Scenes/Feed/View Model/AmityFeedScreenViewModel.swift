@@ -117,9 +117,12 @@ extension AmityFeedScreenViewModel {
                     default:
                         strongSelf.isPrivate = false
                     }
+                    AmityUIKitManager.logger?(.error(error))
                     strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: amityError)
                 } else {
-                    strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: AmityError(error: error) ?? .unknown)
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModelDidFail(strongSelf, failure: error)
                 }
             }
         }

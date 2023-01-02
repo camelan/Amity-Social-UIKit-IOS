@@ -84,7 +84,9 @@ extension AmityCommunityNotificationSettingsScreenViewModel {
             if success {
                 self?.retrieveNotifcationSettings()
             } else {
-                strongSelf.delegate?.screenViewModel(strongSelf, didFailWithError: AmityError(error: error) ?? .unknown)
+                let error = AmityError(error: error) ?? .unknown
+                AmityUIKitManager.logger?(.error(error))
+                strongSelf.delegate?.screenViewModel(strongSelf, didFailWithError: error)
             }
         }
     }
