@@ -74,19 +74,19 @@ class AmityFileService {
             completion(.failure(AmityError.fileServiceIsNotReady))
             return
         }
-        
-        fileRepository.uploadVideo(with: url, progress: progressHandler) { videoData, error in
-            if let error = error {
-                completion(.failure(error))
-                return
+        DispatchQueue.main.async {
+            fileRepository.uploadVideo(with: url, progress: progressHandler) { videoData, error in
+                if let error = error {
+                    completion(.failure(error))
+                    return
+                }
+                if let data = videoData {
+                    completion(.success(data))
+                    return
+                }
+                completion(.failure(AmityError.unknown))
             }
-            if let data = videoData {
-                completion(.success(data))
-                return
-            }
-            completion(.failure(AmityError.unknown))
         }
-        
     }
     
     func loadImage(imageURL: String, size: AmityMediaSize, optimisticLoad: Bool = false, completion: ((Result<UIImage, Error>) -> Void)?) {
@@ -121,19 +121,16 @@ class AmityFileService {
             completion?(.failure(AmityError.fileServiceIsNotReady))
             return
         }
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            fileRepository.downloadImage(fromURL: imageURL, size: size) { [weak self] (url, error) in
-                if let imagePath = url?.path, // a local path returned from sdk
-                   let image = UIImage(contentsOfFile: imagePath) {
-                    self?.pathCache[imageCacheKey] = imagePath
-                    completion?(.success(image))
-                } else if let error = error {
-                    completion?(.failure(error))
-                } else {
-                    let error = AmityError.unknown
-                    completion?(.failure(error))
-                }
+        fileRepository.downloadImage(fromURL: imageURL, size: size) { [weak self] (url, error) in
+            if let imagePath = url?.path, // a local path returned from sdk
+               let image = UIImage(contentsOfFile: imagePath) {
+                self?.pathCache[imageCacheKey] = imagePath
+                completion?(.success(image))
+            } else if let error = error {
+                completion?(.failure(error))
+            } else {
+                let error = AmityError.unknown
+                completion?(.failure(error))
             }
         }
         
@@ -146,17 +143,14 @@ class AmityFileService {
             completion?(.failure(AmityError.fileServiceIsNotReady))
             return
         }
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            fileRepository.downloadFileAsData(fromURL: fileURL) { (data, error) in
-                if let data = data {
-                    completion?(.success(data))
-                } else if let error = error {
-                    completion?(.failure(error))
-                } else {
-                    let error = AmityError.unknown
-                    completion?(.failure(error))
-                }
+        fileRepository.downloadFileAsData(fromURL: fileURL) { (data, error) in
+            if let data = data {
+                completion?(.success(data))
+            } else if let error = error {
+                completion?(.failure(error))
+            } else {
+                let error = AmityError.unknown
+                completion?(.failure(error))
             }
         }
     }
