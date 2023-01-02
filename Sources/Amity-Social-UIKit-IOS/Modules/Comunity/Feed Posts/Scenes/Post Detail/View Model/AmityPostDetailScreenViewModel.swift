@@ -289,18 +289,25 @@ extension AmityPostDetailScreenViewModel {
         commentController.createComment(withReferenceId: postId, referenceType: .post, parentId: parentId, text: text, metadata: metadata, mentionees: mentionees) { [weak self] (comment, error) in
             guard let strongSelf = self else { return }
             
-            if AmityError(error: error) == .bannedWord {
-                let error = AmityError(error: error) ?? .unknown
-                AmityUIKitManager.logger?(.error(error))
-                // check if the recent comment is contains banned word
-                // if containts, delete the particular comment
-                strongSelf.delegate?.screenViewModel(strongSelf, didFinishWithError: .bannedWord)
-            } else if let comment = comment {
-                strongSelf.delegate?.screenViewModelDidCreateComment(strongSelf, comment: AmityCommentModel(comment: comment))
-            } else {
-                strongSelf.delegate?.screenViewModel(strongSelf, didFinishWithError: .unknown)
+            // Need to check SDK implementation.
+            // found an issue where the callback is invoked in the realm write transaction.
+            // so just make a workaround by dispatching it out of the transaction scope.
+            DispatchQueue.main.async {
+                if let error = AmityError(error: error), error == .bannedWord {
+                    // check if the recent comment is contains banned word
+                    // if containts, delete the particular comment
+                    strongSelf.delegate?.screenViewModel(strongSelf, didFinishWithError: .bannedWord)
+                } else if let comment = comment {
+                    strongSelf.delegate?.screenViewModelDidCreateComment(strongSelf, comment: AmityCommentModel(comment: comment))
+                } else {
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    strongSelf.delegate?.screenViewModel(strongSelf, didFinishWithError: .unknown)
+                }
             }
+            
         }
+        
     }
     
     func deleteComment(with comment: AmityCommentModel) {

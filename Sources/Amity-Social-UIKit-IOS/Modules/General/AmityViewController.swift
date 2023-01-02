@@ -91,7 +91,7 @@ open class AmityViewController: UIViewController {
             overrideUserInterfaceStyle = .light
         }
         updateNavigationBarLayout()
-        setupFullWidthBackGesture()
+//        setupFullWidthBackGesture()
     }
 
     #if DEBUG
@@ -100,8 +100,19 @@ open class AmityViewController: UIViewController {
     }
     #endif
     
+    open override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        updateNavigationBarLayout()
+    }
+    
+    open override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        navigationController?.navigationBar.prefersLargeTitles = false
+    }
+    
     private func updateNavigationBarLayout() {
         navigationController?.reset()
+        navigationController?.setNavigationBarHidden(false, animated: true)
         navigationController?.navigationBar.barTintColor = AmityColorSet.baseInverse
         #if DEBUG
         titleLabel.isUserInteractionEnabled = true
