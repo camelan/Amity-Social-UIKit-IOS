@@ -28,12 +28,15 @@ final class AmityCommunityRecommendedController: AmityCommunityRecommendedContro
                 if collection.dataStatus == .fresh {
                     guard let strongSelf = self else { return }
                     if let error = AmityError(error: error) {
+                        AmityUIKitManager.logger?(.error(error))
                         completion?(.failure(error))
                     } else {
                         completion?(.success(strongSelf.prepareDataSource()))
                     }
                 } else {
-                    completion?(.failure(AmityError(error: error) ?? .unknown))
+                    let error = AmityError(error: error) ?? .unknown
+                    AmityUIKitManager.logger?(.error(error))
+                    completion?(.failure(error))
                 }
             }
         }

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="20037" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="17701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="20020"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17703"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -399,7 +399,7 @@
                                                             <rect key="frame" x="0.0" y="4.5" width="40" height="40"/>
                                                             <subviews>
                                                                 <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="icon_private" translatesAutoresizingMaskIntoConstraints="NO" id="5Wf-El-1zn">
-                                                                    <rect key="frame" x="10" y="10" width="20" height="20"/>
+                                                                    <rect key="frame" x="8" y="8" width="24" height="24"/>
                                                                 </imageView>
                                                             </subviews>
                                                             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
@@ -569,14 +569,9 @@
             <point key="canvasLocation" x="137.68115942028987" y="99.776785714285708"/>
         </view>
     </objects>
-    <designables>
-        <designable name="3bC-Dd-eE1">
-            <size key="intrinsicContentSize" width="10" height="33"/>
-        </designable>
-    </designables>
     <resources>
         <image name="icon_close_with_background" width="16" height="16"/>
-        <image name="icon_private" width="20" height="20"/>
+        <image name="icon_private" width="24" height="24"/>
         <image name="icon_public" width="18" height="18"/>
         <image name="icon_radio_off" width="24" height="24"/>
         <systemColor name="labelColor">
