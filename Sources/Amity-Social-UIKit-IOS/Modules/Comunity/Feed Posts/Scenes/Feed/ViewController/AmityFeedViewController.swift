@@ -48,7 +48,10 @@ public final class AmityFeedViewController: AmityViewController, AmityRefreshabl
     var dataDidUpdateHandler: ((Int) -> Void)?
     var emptyViewHandler: ((UIView?) -> Void)?
     var pullRefreshHandler: (() -> Void)?
-    
+    public var didLoad: (() -> Void)?
+    public var numberOfPostComponents: Int {
+        return self.screenViewModel.numberOfPostComponents()
+    }
     // To determine if the vc is visible or not
     private var isVisible: Bool = true
     
@@ -105,6 +108,10 @@ public final class AmityFeedViewController: AmityViewController, AmityRefreshabl
         let vc = AmityFeedViewController(nibName: AmityFeedViewController.identifier, bundle: AmityUIKitManager.bundle)
         vc.screenViewModel = viewModel
         return vc
+    }
+    
+    public func refreshData() {
+        handleRefreshingControl()
     }
 
     // MARK: Setup Post Protocol Handler
@@ -316,7 +323,9 @@ extension AmityFeedViewController: AmityFeedScreenViewModelDelegate {
             return
         }
         debouncer.run { [weak self] in
-            self?.tableView.reloadData()
+            self?.tableView.reloadData { [weak self] in
+                self?.didLoad?()
+            }
         }
         dataDidUpdateHandler?(screenViewModel.dataSource.numberOfPostComponents())
         refreshControl.endRefreshing()

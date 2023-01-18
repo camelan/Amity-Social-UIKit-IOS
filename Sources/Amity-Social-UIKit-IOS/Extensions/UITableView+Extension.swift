@@ -103,4 +103,11 @@ extension UITableView {
             view.centerXAnchor.constraint(equalTo: centerXAnchor)
         ])
     }
+    func reloadData(_ completion: @escaping () -> Void) {
+        UIView.animate(withDuration: 0, animations: {
+            self.reloadData()
+        }, completion: { _ in
+            completion()
+        })
+    }
 }

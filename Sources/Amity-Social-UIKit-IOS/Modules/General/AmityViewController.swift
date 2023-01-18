@@ -112,7 +112,6 @@ open class AmityViewController: UIViewController {
     
     private func updateNavigationBarLayout() {
         navigationController?.reset()
-        navigationController?.setNavigationBarHidden(false, animated: true)
         navigationController?.navigationBar.barTintColor = AmityColorSet.baseInverse
         #if DEBUG
         titleLabel.isUserInteractionEnabled = true
@@ -122,20 +121,24 @@ open class AmityViewController: UIViewController {
         #endif
         switch navigationBarType {
         case .root:
+            navigationController?.setNavigationBarHidden(false, animated: true)
             titleFont = AmityFontSet.headerLine
             navigationItem.leftBarButtonItem = UIBarButtonItem(customView: titleLabel)
             navigationController?.setBackgroundColor(with: .white)
         case .present:
+            navigationController?.setNavigationBarHidden(false, animated: true)
             titleFont = AmityFontSet.title
             navigationItem.titleView = titleLabel
             leftBarButtonItem?.image = AmityIconSet.iconClose
             navigationItem.leftBarButtonItem = leftBarButtonItem
         case .push:
+            navigationController?.setNavigationBarHidden(false, animated: true)
             titleFont = AmityFontSet.title
             navigationItem.titleView = titleLabel
             leftBarButtonItem?.image = AmityIconSet.iconBack
             navigationItem.leftBarButtonItem = leftBarButtonItem
         case .custom:
+            navigationController?.setNavigationBarHidden(true, animated: true)
             navigationItem.leftBarButtonItem = nil
             break
         }
