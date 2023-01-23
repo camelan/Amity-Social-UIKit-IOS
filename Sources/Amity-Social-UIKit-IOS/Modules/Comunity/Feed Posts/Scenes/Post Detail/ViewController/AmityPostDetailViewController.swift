@@ -276,9 +276,7 @@ extension AmityPostDetailViewController: AmityPostTableViewDelegate {
             } else {
                 cell = postComponent.getComponentCell(tableView, at: indexPath)
             }
-            (cell as? AmityPostHeaderProtocol)?.delegate = postHeaderProtocolHandler
-            (cell as? AmityPostFooterProtocol)?.delegate = postFooterProtocolHandler
-            (cell as? AmityPostProtocol)?.delegate = postProtocolHandler
+            
         case .comment(let comment):
             if comment.isDeleted {
                 let _cell = cell as! AmityPostDetailDeletedTableViewCell
@@ -379,6 +377,9 @@ extension AmityPostDetailViewController: AmityPostTableViewDataSource {
             } else {
                 cell = postComponent.getComponentCell(tableView, at: indexPath)
             }
+            (cell as? AmityPostHeaderProtocol)?.delegate = postHeaderProtocolHandler
+            (cell as? AmityPostFooterProtocol)?.delegate = postFooterProtocolHandler
+            (cell as? AmityPostProtocol)?.delegate = postProtocolHandler
             return cell
         case .comment(let comment):
             if comment.isDeleted {
