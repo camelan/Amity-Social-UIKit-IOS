@@ -107,11 +107,11 @@ open class AmityViewController: UIViewController {
     
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        navigationController?.navigationBar.prefersLargeTitles = false
     }
     
     private func updateNavigationBarLayout() {
         navigationController?.reset()
+        navigationController?.navigationBar.prefersLargeTitles = false
         navigationController?.navigationBar.barTintColor = AmityColorSet.baseInverse
         #if DEBUG
         titleLabel.isUserInteractionEnabled = true
