@@ -11,7 +11,9 @@
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="AmityFeedViewController" customModule="Amity_Social_UIKit_IOS">
             <connections>
+                <outlet property="bottomConstraint" destination="kuJ-nN-JHT" id="gPL-Og-ESC"/>
                 <outlet property="tableView" destination="XOB-JW-neK" id="31c-5v-s8A"/>
+                <outlet property="topConstraint" destination="JZk-Ub-NDv" id="1c5-kh-86z"/>
                 <outlet property="view" destination="i5M-Pr-FkT" id="sfx-zR-JGt"/>
             </connections>
         </placeholder>
@@ -21,7 +23,7 @@
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
                 <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="XOB-JW-neK" customClass="AmityPostTableView" customModule="Amity_Social_UIKit_IOS">
-                    <rect key="frame" x="0.0" y="48" width="414" height="814"/>
+                    <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                 </tableView>
             </subviews>
@@ -29,9 +31,9 @@
             <color key="backgroundColor" systemColor="systemBackgroundColor"/>
             <constraints>
                 <constraint firstItem="zN9-du-z87" firstAttribute="trailing" secondItem="XOB-JW-neK" secondAttribute="trailing" id="CT5-az-UeL"/>
-                <constraint firstItem="XOB-JW-neK" firstAttribute="top" secondItem="zN9-du-z87" secondAttribute="top" id="JZk-Ub-NDv"/>
+                <constraint firstItem="XOB-JW-neK" firstAttribute="top" secondItem="i5M-Pr-FkT" secondAttribute="top" id="JZk-Ub-NDv"/>
                 <constraint firstItem="XOB-JW-neK" firstAttribute="leading" secondItem="zN9-du-z87" secondAttribute="leading" id="QJx-zR-Kpl"/>
-                <constraint firstAttribute="bottom" secondItem="XOB-JW-neK" secondAttribute="bottom" constant="34" id="kuJ-nN-JHT"/>
+                <constraint firstAttribute="bottom" secondItem="XOB-JW-neK" secondAttribute="bottom" id="kuJ-nN-JHT"/>
             </constraints>
             <point key="canvasLocation" x="137.68115942028987" y="104.46428571428571"/>
         </view>

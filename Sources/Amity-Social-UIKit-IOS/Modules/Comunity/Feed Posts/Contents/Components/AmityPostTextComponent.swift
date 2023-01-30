@@ -57,7 +57,6 @@ public struct AmityPostTextComponent: AmityPostComposable {
             cell.setIsExpanded(isExpanded)
             cell.display(post: post, comment: comment)
             return cell
-            return cell
         }
     }
     

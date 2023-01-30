@@ -21,6 +21,8 @@ public final class AmityFeedViewController: AmityViewController, AmityRefreshabl
     // MARK: - IBOutlet Properties
     @IBOutlet private var tableView: AmityPostTableView!
     private var expandedIds: Set<String> = []
+    @IBOutlet weak var topConstraint: NSLayoutConstraint!
+    @IBOutlet weak var bottomConstraint: NSLayoutConstraint!
     
     // MARK: - Properties
     private var screenViewModel: AmityFeedScreenViewModelType!
@@ -140,7 +142,11 @@ public final class AmityFeedViewController: AmityViewController, AmityRefreshabl
     // MARK: - Setup Views
     private func setupView() {
         setupTableView()
-        setupRefreshControl()
+        if navigationBarType != .custom {
+            setupRefreshControl()
+            self.topConstraint.constant = self.view.safeAreaInsets.top
+            self.bottomConstraint.constant = self.view.safeAreaInsets.bottom
+        }
     }
     
     private func setupTableView() {
